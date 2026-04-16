@@ -241,6 +241,31 @@
     .zone-btn.active-z3 { background: #e3f2fd; border-color: #42a5f5; color: #1565c0; }
     .zone-btn.active-none { background: #fce4ec; border-color: #ef9a9a; color: #c62828; }
 
+    /* ---- etape grid (score 3) ---- */
+    .etape-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin-top: 10px;
+    }
+    .etape-grid-cell {
+      border-radius: 6px;
+      padding: 6px 4px;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.4;
+      opacity: .55;
+      transition: .2s;
+    }
+    .etape-grid-cell.current { opacity: 1; transform: scale(1.04); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+    .etape-grid-cell.eg-1 { background: #ffebee; color: #c62828; }
+    .etape-grid-cell.eg-2 { background: #fff3e0; color: #e65100; }
+    .etape-grid-cell.eg-3 { background: #e8f5e9; color: #2e7d32; }
+    .etape-grid-cell.eg-4 { background: #e3f2fd; color: #1565c0; }
+    .etape-grid-cell .eg-label { font-size: 9px; opacity: .8; display: block; margin-bottom: 2px; }
+    .etape-grid-cell .eg-val { font-size: 11px; font-weight: 800; display: block; }
+
     /* ---- scores ---- */
     .score-card {
       border: 1.5px solid var(--border);
@@ -520,7 +545,7 @@
           <div class="etape-step" id="s3step3"></div>
           <div class="etape-step" id="s3step4"></div>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="s3hint"></div>
+        <div id="s3hint" class="etape-grid"></div>
       </div>
     </div>
   </div>
@@ -765,13 +790,26 @@ function updateScores() {
   document.getElementById('s3frac').textContent = `(${totalCases}/${nbPoss})`;
   const nb = state.nbJoueurs;
   let e3;
-  if (nb <= 5) {
-    e3 = totalCases < 10 ? 1 : totalCases <= 19 ? 2 : totalCases <= 29 ? 3 : 4;
-    document.getElementById('s3hint').textContent = '5 joueurs : <10 Insuff. | 10-19 Fragile | 20-29 Satisf. | >30 Très bonne';
-  } else {
-    e3 = totalCases < 20 ? 1 : totalCases <= 29 ? 2 : totalCases <= 39 ? 3 : 4;
-    document.getElementById('s3hint').textContent = '6 joueurs : <20 Insuff. | 20-29 Fragile | 30-39 Satisf. | >40 Très bonne';
-  }
+  const s3thresholds = nb <= 5
+    ? [{ lbl: 'Étape 1', val: '< 10',    cls: 'eg-1', max: 9  },
+       { lbl: 'Étape 2', val: '10 à 19', cls: 'eg-2', max: 19 },
+       { lbl: 'Étape 3', val: '20 à 29', cls: 'eg-3', max: 29 },
+       { lbl: 'Étape 4', val: '≥ 30',    cls: 'eg-4', max: Infinity }]
+    : [{ lbl: 'Étape 1', val: '< 20',    cls: 'eg-1', max: 19 },
+       { lbl: 'Étape 2', val: '20 à 29', cls: 'eg-2', max: 29 },
+       { lbl: 'Étape 3', val: '30 à 39', cls: 'eg-3', max: 39 },
+       { lbl: 'Étape 4', val: '≥ 40',    cls: 'eg-4', max: Infinity }];
+
+  e3 = s3thresholds.findIndex(t => totalCases <= t.max) + 1;
+
+  const sub = nb <= 5 ? '5 joueurs' : '6 joueurs';
+  document.getElementById('s3hint').innerHTML = s3thresholds.map((t, i) =>
+    `<div class="etape-grid-cell ${t.cls}${e3 === i+1 ? ' current' : ''}">
+      <span class="eg-label">${t.lbl}</span>
+      <span class="eg-val">${t.val}</span>
+      <span class="eg-label">${sub}</span>
+    </div>`
+  ).join('');
   setEtape('s3', e3);
 }
 
