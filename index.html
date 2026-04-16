@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Obs. Ultimate</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1a6b3c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #1a6b3c;
+      --green-light: #e8f5ee;
+      --green-mid: #4caf50;
+      --orange: #e65100;
+      --yellow: #f9a825;
+      --blue: #1565c0;
+      --bg: #f4f6f8;
+      --card: #fff;
+      --border: #dde3ea;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      padding-bottom: 80px;
+    }
+
+    header {
+      background: var(--green);
+      color: #fff;
+      padding: 14px 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    header h1 { font-size: 18px; font-weight: 700; flex: 1; }
+    header .disc { font-size: 24px; }
+
+    /* ---- tabs ---- */
+    .tabs {
+      display: flex;
+      background: var(--green);
+      border-top: 1px solid rgba(255,255,255,.15);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 4px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,.65);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: .2s;
+    }
+    .tab-btn.active { color: #fff; border-bottom-color: #fff; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ---- sections ---- */
+    .section {
+      background: var(--card);
+      border-radius: var(--radius);
+      margin: 12px;
+      padding: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--green);
+      margin-bottom: 10px;
+    }
+
+    /* ---- form fields ---- */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .field-row.full { grid-template-columns: 1fr; }
+    label { font-size: 12px; font-weight: 600; color: var(--muted); display: block; margin-bottom: 4px; }
+    input[type="text"], input[type="date"], select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      appearance: none;
+    }
+    input[type="text"]:focus, input[type="date"]:focus, select:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+
+    /* ---- player names ---- */
+    .players-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .player-field { display: flex; align-items: center; gap: 6px; }
+    .player-badge {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--green); color: #fff;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ---- possession table ---- */
+    .possession-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .possession-header .section-title { margin-bottom: 0; }
+    .nb-joueurs-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .nb-joueurs-label select { padding: 4px 8px; font-size: 12px; width: auto; display: inline; }
+
+    .poss-card {
+      background: #fafbfc;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .poss-card-header {
+      background: var(--green);
+      color: #fff;
+      padding: 7px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .poss-num { font-size: 16px; }
+    .poss-card-body { padding: 10px 12px; }
+
+    .players-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .player-check {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .player-check .name {
+      font-size: 11px;
+      color: var(--muted);
+      max-width: 52px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .check-circle {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      transition: .15s;
+      user-select: none;
+    }
+    .check-circle.checked {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    .result-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .result-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .result-btn {
+      padding: 7px 16px;
+      border-radius: 20px;
+      border: 2px solid var(--border);
+      background: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .15s;
+    }
+    .result-btn.V.active { background: #2e7d32; border-color: #2e7d32; color: #fff; }
+    .result-btn.X.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+    .ptszone-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .ptszone-row label { margin: 0; font-size: 12px; color: var(--muted); font-weight: 600; }
+    .zone-btn {
+      flex: 1;
+      padding: 8px 4px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: .15s;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .zone-btn .zone-pts { font-size: 16px; display: block; }
+    .zone-btn.active-z1 { background: #fff3e0; border-color: #ffa726; color: #e65100; }
+    .zone-btn.active-z2 { background: #e8f5e9; border-color: #66bb6a; color: #2e7d32; }
+    .zone-btn.active-z3 { background: #e3f2fd; border-color: #42a5f5; color: #1565c0; }
+    .zone-btn.active-none { background: #fce4ec; border-color: #ef9a9a; color: #c62828; }
+
+    /* ---- scores ---- */
+    .score-card {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .score-card-header {
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      background: #f0f4f8;
+    }
+    .score-card-body { padding: 12px 14px; }
+    .score-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--green);
+    }
+    .score-fraction { font-size: 14px; color: var(--muted); margin-left: 6px; }
+    .etape-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    .etape-1 { background: #ffebee; color: #c62828; }
+    .etape-2 { background: #fff3e0; color: #e65100; }
+    .etape-3 { background: #e8f5e9; color: #2e7d32; }
+    .etape-4 { background: #e3f2fd; color: #1565c0; }
+
+    .etape-scale {
+      margin-top: 10px;
+      display: flex;
+      gap: 4px;
+    }
+    .etape-step {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      transition: .3s;
+    }
+    .etape-step.active-1 { background: #ef5350; }
+    .etape-step.active-2 { background: #ffa726; }
+    .etape-step.active-3 { background: var(--green-mid); }
+    .etape-step.active-4 { background: var(--blue); }
+
+    .totaux-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .totaux-item {
+      background: var(--green-light);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+    .totaux-item .val { font-size: 22px; font-weight: 800; color: var(--green); }
+    .totaux-item .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ---- bottom bar ---- */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-top: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      gap: 10px;
+      z-index: 100;
+    }
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .15s;
+    }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-secondary { background: var(--bg); color: var(--green); border: 2px solid var(--green); }
+    .btn:active { transform: scale(.97); }
+
+    /* ---- historique ---- */
+    .hist-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      margin: 12px;
+      padding: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      cursor: pointer;
+    }
+    .hist-card-title { font-weight: 700; font-size: 15px; }
+    .hist-card-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .hist-card-scores { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .hist-score-chip {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--green-light);
+      color: var(--green);
+    }
+    .hist-empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 14px; }
+    .hist-delete-btn {
+      background: none; border: none; color: #ef5350;
+      font-size: 18px; cursor: pointer; padding: 4px 8px;
+      float: right;
+    }
+
+    .info-box {
+      background: #fffde7;
+      border: 1.5px solid #f9a825;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #5d4037;
+      margin-top: 8px;
+    }
+    .info-box strong { color: #e65100; }
+
+    /* saved toast */
+    .toast {
+      position: fixed;
+      bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1a1a2e;
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0;
+      transition: .3s;
+      z-index: 200;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="disc">🥏</span>
+  <h1>Obs. Collective — Ultimate</h1>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('saisie')">Saisie</button>
+  <button class="tab-btn" onclick="switchTab('scores')">Scores</button>
+  <button class="tab-btn" onclick="switchTab('historique')">Historique</button>
+</div>
+
+<!-- ===== TAB SAISIE ===== -->
+<div id="tab-saisie" class="tab-content active">
+
+  <!-- Infos générales -->
+  <div class="section">
+    <div class="section-title">Informations</div>
+    <div class="field-row">
+      <div>
+        <label>Équipe observée</label>
+        <input type="text" id="equipe" placeholder="Nom de l'équipe" />
+      </div>
+      <div>
+        <label>Observateur</label>
+        <input type="text" id="observateur" placeholder="Votre nom" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <label>Manche / Période</label>
+        <input type="text" id="manche" placeholder="ex: Manche 1" />
+      </div>
+      <div>
+        <label>Date</label>
+        <input type="date" id="date" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Joueurs -->
+  <div class="section">
+    <div class="possession-header">
+      <div class="section-title">Joueurs</div>
+      <div class="nb-joueurs-label">
+        Nb joueurs : <select id="nbJoueurs" onchange="updateNbJoueurs()">
+          <option value="5">5</option>
+          <option value="6" selected>6</option>
+        </select>
+      </div>
+    </div>
+    <div class="players-grid" id="playersGrid"></div>
+  </div>
+
+  <!-- Possessions -->
+  <div class="section">
+    <div class="possession-header">
+      <div class="section-title">Suivi des possessions</div>
+    </div>
+    <div id="possessionsContainer"></div>
+  </div>
+
+  <div class="info-box" style="margin: 0 12px 12px;">
+    <strong>Mode d'emploi :</strong> Cocher si le joueur touche le disque.
+    Résultat : <strong>V</strong> = marque, <strong>X</strong> = perte.
+    Pts zone : Zone 1 = 1 pt | Zone 2 = 3 pts | Zone 3 (en-but) = 5 pts | Perte avant zone = 0.
+  </div>
+</div>
+
+<!-- ===== TAB SCORES ===== -->
+<div id="tab-scores" class="tab-content">
+  <div class="section">
+    <div class="section-title">Totaux</div>
+    <div class="totaux-grid" id="totauxGrid"></div>
+  </div>
+
+  <div class="section" id="score1Section">
+    <div class="section-title">Score 1 — Équipe qui marque</div>
+    <div class="score-card">
+      <div class="score-card-header">Points marqués / Possessions</div>
+      <div class="score-card-body">
+        <span class="score-value" id="s1val">—</span>
+        <span class="score-fraction" id="s1frac"></span>
+        <div class="etape-badge" id="s1etape"></div>
+        <div class="etape-scale">
+          <div class="etape-step" id="s1step1"></div>
+          <div class="etape-step" id="s1step2"></div>
+          <div class="etape-step" id="s1step3"></div>
+          <div class="etape-step" id="s1step4"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;">
+          ≤0.2 Insuff. | 0.3-0.4 Fragile | 0.5-0.6 Satisf. | ≥0.7 Très bonne
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="score2Section">
+    <div class="section-title">Score 2 — Équipe qui progresse</div>
+    <div class="score-card">
+      <div class="score-card-header">Points zones / Possessions</div>
+      <div class="score-card-body">
+        <span class="score-value" id="s2val">—</span>
+        <span class="score-fraction" id="s2frac"></span>
+        <div class="etape-badge" id="s2etape"></div>
+        <div class="etape-scale">
+          <div class="etape-step" id="s2step1"></div>
+          <div class="etape-step" id="s2step2"></div>
+          <div class="etape-step" id="s2step3"></div>
+          <div class="etape-step" id="s2step4"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;">
+          ≤10 Insuff. | 11-24 Fragile | 25-39 Satisf. | ≥40 Très bonne
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="score3Section">
+    <div class="section-title">Score 3 — Équipe qui joue ensemble</div>
+    <div class="score-card">
+      <div class="score-card-header">Cases cochées / Possessions</div>
+      <div class="score-card-body">
+        <span class="score-value" id="s3val">—</span>
+        <span class="score-fraction" id="s3frac"></span>
+        <div class="etape-badge" id="s3etape"></div>
+        <div class="etape-scale">
+          <div class="etape-step" id="s3step1"></div>
+          <div class="etape-step" id="s3step2"></div>
+          <div class="etape-step" id="s3step3"></div>
+          <div class="etape-step" id="s3step4"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="s3hint"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB HISTORIQUE ===== -->
+<div id="tab-historique" class="tab-content">
+  <div id="histContainer"></div>
+</div>
+
+<!-- Bottom bar -->
+<div class="bottom-bar">
+  <button class="btn btn-secondary" onclick="resetForm()">Nouveau</button>
+  <button class="btn btn-primary" onclick="saveSession()">Sauvegarder</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+const MAX_POSSESSIONS = 10;
+let state = {
+  equipe: '', observateur: '', manche: '', date: '',
+  nbJoueurs: 6,
+  joueurs: ['', '', '', '', '', ''],
+  possessions: Array.from({length: MAX_POSSESSIONS}, () => ({
+    joueurs: [], resultat: '', ptsZone: ''
+  }))
+};
+
+// ===== INIT =====
+function init() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('date').value = today;
+  renderPlayersGrid();
+  renderPossessions();
+  loadHistory();
+  setupInputListeners();
+}
+
+function setupInputListeners() {
+  ['equipe','observateur','manche','date'].forEach(id => {
+    document.getElementById(id).addEventListener('input', e => {
+      state[id] = e.target.value;
+    });
+  });
+}
+
+// ===== PLAYERS =====
+function renderPlayersGrid() {
+  const grid = document.getElementById('playersGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < state.nbJoueurs; i++) {
+    const div = document.createElement('div');
+    div.className = 'player-field';
+    div.innerHTML = `
+      <div class="player-badge">J${i+1}</div>
+      <input type="text" placeholder="Prénom J${i+1}" value="${state.joueurs[i] || ''}"
+        oninput="updateJoueur(${i}, this.value)" />
+    `;
+    grid.appendChild(div);
+  }
+}
+
+function updateJoueur(i, val) {
+  state.joueurs[i] = val;
+  // Update names in possession cards
+  document.querySelectorAll(`.pcheck-name-${i}`).forEach(el => {
+    el.textContent = val || `J${i+1}`;
+  });
+}
+
+function updateNbJoueurs() {
+  state.nbJoueurs = parseInt(document.getElementById('nbJoueurs').value);
+  // Reset joueurs touches in possessions
+  state.possessions.forEach(p => {
+    p.joueurs = p.joueurs.filter(j => j < state.nbJoueurs);
+  });
+  renderPlayersGrid();
+  renderPossessions();
+  updateScores();
+}
+
+// ===== POSSESSIONS =====
+function renderPossessions() {
+  const container = document.getElementById('possessionsContainer');
+  container.innerHTML = '';
+  for (let i = 0; i < MAX_POSSESSIONS; i++) {
+    container.appendChild(renderPossessionCard(i));
+  }
+}
+
+function renderPossessionCard(i) {
+  const p = state.possessions[i];
+  const card = document.createElement('div');
+  card.className = 'poss-card';
+  card.id = `poss-${i}`;
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'poss-card-header';
+  header.innerHTML = `<span class="poss-num">#${i+1}</span> Possession ${i+1}`;
+  card.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'poss-card-body';
+
+  // Players row
+  const playersRow = document.createElement('div');
+  playersRow.className = 'players-row';
+  for (let j = 0; j < state.nbJoueurs; j++) {
+    const pc = document.createElement('div');
+    pc.className = 'player-check';
+    const checked = p.joueurs.includes(j);
+    pc.innerHTML = `
+      <div class="check-circle ${checked ? 'checked' : ''}"
+           onclick="toggleJoueur(${i}, ${j}, this)" id="pcheck-${i}-${j}">
+        J${j+1}
+      </div>
+      <span class="name pcheck-name-${j}">${state.joueurs[j] || `J${j+1}`}</span>
+    `;
+    playersRow.appendChild(pc);
+  }
+  body.appendChild(playersRow);
+
+  // Result row
+  const resultRow = document.createElement('div');
+  resultRow.className = 'result-row';
+  resultRow.innerHTML = `
+    <span class="result-label">Résultat :</span>
+    <button class="result-btn V ${p.resultat === 'V' ? 'active' : ''}"
+            onclick="setResultat(${i}, 'V', this)">V Marque</button>
+    <button class="result-btn X ${p.resultat === 'X' ? 'active' : ''}"
+            onclick="setResultat(${i}, 'X', this)">X Perte</button>
+  `;
+  body.appendChild(resultRow);
+
+  // Points zone
+  const pzRow = document.createElement('div');
+  pzRow.className = 'ptszone-row';
+  const zones = [
+    { val: 0,  label: 'Perte\navant Z1', cls: 'active-none', pts: '0 pt'  },
+    { val: 1,  label: 'Zone 1',           cls: 'active-z1',   pts: '1 pt'  },
+    { val: 3,  label: 'Zone 2',           cls: 'active-z2',   pts: '3 pts' },
+    { val: 5,  label: 'Zone 3\n(en-but)', cls: 'active-z3',   pts: '5 pts' },
+  ];
+  pzRow.innerHTML = `<label>Pts zone :</label>` +
+    zones.map(z => `
+      <button class="zone-btn ${p.ptsZone === z.val ? z.cls : ''}"
+              onclick="setPtsZone(${i}, ${z.val}, this)">
+        <span class="zone-pts">${z.pts}</span>${z.label}
+      </button>`).join('');
+  body.appendChild(pzRow);
+
+  card.appendChild(body);
+  return card;
+}
+
+function toggleJoueur(poss, joueur, el) {
+  const p = state.possessions[poss];
+  const idx = p.joueurs.indexOf(joueur);
+  if (idx === -1) { p.joueurs.push(joueur); el.classList.add('checked'); }
+  else { p.joueurs.splice(idx, 1); el.classList.remove('checked'); }
+  updateScores();
+}
+
+function setResultat(poss, val, btn) {
+  const p = state.possessions[poss];
+  // toggle off if already active
+  if (p.resultat === val) {
+    p.resultat = '';
+    btn.classList.remove('active');
+  } else {
+    p.resultat = val;
+    const card = document.getElementById(`poss-${poss}`);
+    card.querySelectorAll('.result-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  updateScores();
+}
+
+function setPtsZone(poss, val, btn) {
+  const p = state.possessions[poss];
+  // toggle off if already selected
+  if (p.ptsZone === val) {
+    p.ptsZone = '';
+    btn.className = 'zone-btn';
+  } else {
+    p.ptsZone = val;
+    const clsMap = { 0: 'active-none', 1: 'active-z1', 3: 'active-z2', 5: 'active-z3' };
+    const card = document.getElementById(`poss-${poss}`);
+    card.querySelectorAll('.zone-btn').forEach(b => b.className = 'zone-btn');
+    btn.classList.add(clsMap[val]);
+  }
+  updateScores();
+}
+
+// ===== SCORES =====
+function updateScores() {
+  const possWithResult = state.possessions.filter(p => p.resultat !== '');
+  const nbPoss = possWithResult.length;
+
+  const pointsMarques = possWithResult.filter(p => p.resultat === 'V').length;
+  const pertesP = possWithResult.filter(p => p.resultat === 'X').length;
+  const totalPtsZone = possWithResult.reduce((sum, p) => sum + (parseInt(p.ptsZone) || 0), 0);
+  const totalCases = possWithResult.reduce((sum, p) => sum + p.joueurs.length, 0);
+
+  // Totaux
+  document.getElementById('totauxGrid').innerHTML = `
+    <div class="totaux-item"><div class="val">${nbPoss}</div><div class="lbl">Possessions jouées</div></div>
+    <div class="totaux-item"><div class="val">${pointsMarques}</div><div class="lbl">Points marqués</div></div>
+    <div class="totaux-item"><div class="val">${pertesP}</div><div class="lbl">Possessions perdues</div></div>
+    <div class="totaux-item"><div class="val">${totalPtsZone}</div><div class="lbl">Total pts zone</div></div>
+    <div class="totaux-item"><div class="val">${totalCases}</div><div class="lbl">Cases cochées (total)</div></div>
+    <div class="totaux-item"><div class="val">${nbPoss > 0 ? (totalCases/nbPoss).toFixed(1) : '—'}</div><div class="lbl">Contacts/possession <span style="font-size:10px;">(>3 = bien)</span></div></div>
+  `;
+
+  if (nbPoss === 0) {
+    ['s1val','s2val','s3val'].forEach(id => document.getElementById(id).textContent = '—');
+    ['s1frac','s2frac','s3frac'].forEach(id => document.getElementById(id).textContent = '');
+    ['s1etape','s2etape','s3etape'].forEach(id => document.getElementById(id).textContent = '');
+    return;
+  }
+
+  // Score 1: points marqués / possessions
+  const s1 = pointsMarques / nbPoss;
+  document.getElementById('s1val').textContent = s1.toFixed(2);
+  document.getElementById('s1frac').textContent = `(${pointsMarques}/${nbPoss})`;
+  const e1 = s1 <= 0.2 ? 1 : s1 <= 0.4 ? 2 : s1 <= 0.6 ? 3 : 4;
+  setEtape('s1', e1);
+
+  // Score 2: total pts zone / possessions
+  const s2raw = totalPtsZone;
+  document.getElementById('s2val').textContent = s2raw;
+  document.getElementById('s2frac').textContent = `pts zone / ${nbPoss} poss.`;
+  const e2 = s2raw <= 10 ? 1 : s2raw <= 24 ? 2 : s2raw <= 39 ? 3 : 4;
+  setEtape('s2', e2);
+
+  // Score 3: cases cochées / possessions
+  const s3 = totalCases / nbPoss;
+  document.getElementById('s3val').textContent = s3.toFixed(1);
+  document.getElementById('s3frac').textContent = `(${totalCases}/${nbPoss})`;
+  const nb = state.nbJoueurs;
+  let e3;
+  if (nb <= 5) {
+    e3 = totalCases < 10 ? 1 : totalCases <= 19 ? 2 : totalCases <= 29 ? 3 : 4;
+    document.getElementById('s3hint').textContent = '5 joueurs : <10 Insuff. | 10-19 Fragile | 20-29 Satisf. | >30 Très bonne';
+  } else {
+    e3 = totalCases < 20 ? 1 : totalCases <= 29 ? 2 : totalCases <= 39 ? 3 : 4;
+    document.getElementById('s3hint').textContent = '6 joueurs : <20 Insuff. | 20-29 Fragile | 30-39 Satisf. | >40 Très bonne';
+  }
+  setEtape('s3', e3);
+}
+
+function setEtape(prefix, e) {
+  const labels = ['', 'Étape 1 — Insuffisant', 'Étape 2 — Fragile', 'Étape 3 — Satisfaisant', 'Étape 4 — Très bonne maîtrise'];
+  const el = document.getElementById(`${prefix}etape`);
+  el.className = `etape-badge etape-${e}`;
+  el.textContent = labels[e];
+  for (let i = 1; i <= 4; i++) {
+    const step = document.getElementById(`${prefix}step${i}`);
+    step.className = `etape-step${i <= e ? ` active-${e}` : ''}`;
+  }
+}
+
+// ===== SAVE / LOAD =====
+function saveSession() {
+  state.equipe = document.getElementById('equipe').value;
+  state.observateur = document.getElementById('observateur').value;
+  state.manche = document.getElementById('manche').value;
+  state.date = document.getElementById('date').value;
+
+  const sessions = JSON.parse(localStorage.getItem('ultimate_sessions') || '[]');
+  const session = {
+    id: Date.now(),
+    ...JSON.parse(JSON.stringify(state))
+  };
+  sessions.unshift(session);
+  localStorage.setItem('ultimate_sessions', JSON.stringify(sessions));
+  showToast('Séance sauvegardée !');
+  loadHistory();
+}
+
+function loadHistory() {
+  const sessions = JSON.parse(localStorage.getItem('ultimate_sessions') || '[]');
+  const container = document.getElementById('histContainer');
+  if (sessions.length === 0) {
+    container.innerHTML = '<div class="hist-empty">Aucune séance sauvegardée</div>';
+    return;
+  }
+  container.innerHTML = '';
+  sessions.forEach(s => {
+    const poss = s.possessions.filter(p => p.resultat !== '');
+    const nb = poss.length;
+    const pts = poss.filter(p => p.resultat === 'V').length;
+    const zone = poss.reduce((sum, p) => sum + (parseInt(p.ptsZone) || 0), 0);
+
+    const card = document.createElement('div');
+    card.className = 'hist-card';
+    card.innerHTML = `
+      <button class="hist-delete-btn" onclick="deleteSession(${s.id}, event)">✕</button>
+      <div class="hist-card-title">${s.equipe || 'Équipe inconnue'}</div>
+      <div class="hist-card-sub">${s.date || '—'} · ${s.manche || '—'} · ${s.observateur || '—'}</div>
+      <div class="hist-card-scores">
+        <span class="hist-score-chip">⚡ ${nb} poss.</span>
+        <span class="hist-score-chip">✓ ${pts} pts</span>
+        <span class="hist-score-chip">🎯 ${zone} pts zone</span>
+        <span class="hist-score-chip">Score: ${nb ? (pts/nb).toFixed(2) : '—'}</span>
+      </div>
+    `;
+    card.addEventListener('click', () => loadSession(s));
+    container.appendChild(card);
+  });
+}
+
+function deleteSession(id, e) {
+  e.stopPropagation();
+  let sessions = JSON.parse(localStorage.getItem('ultimate_sessions') || '[]');
+  sessions = sessions.filter(s => s.id !== id);
+  localStorage.setItem('ultimate_sessions', JSON.stringify(sessions));
+  loadHistory();
+  showToast('Séance supprimée');
+}
+
+function loadSession(s) {
+  state = JSON.parse(JSON.stringify(s));
+  document.getElementById('equipe').value = state.equipe || '';
+  document.getElementById('observateur').value = state.observateur || '';
+  document.getElementById('manche').value = state.manche || '';
+  document.getElementById('date').value = state.date || '';
+  document.getElementById('nbJoueurs').value = state.nbJoueurs;
+  renderPlayersGrid();
+  renderPossessions();
+  updateScores();
+  switchTab('saisie');
+  showToast('Séance chargée');
+}
+
+function resetForm() {
+  if (!confirm('Effacer la saisie en cours ?')) return;
+  state = {
+    equipe: '', observateur: '', manche: '',
+    date: new Date().toISOString().split('T')[0],
+    nbJoueurs: 6,
+    joueurs: ['', '', '', '', '', ''],
+    possessions: Array.from({length: MAX_POSSESSIONS}, () => ({joueurs: [], resultat: '', ptsZone: ''}))
+  };
+  document.getElementById('equipe').value = '';
+  document.getElementById('observateur').value = '';
+  document.getElementById('manche').value = '';
+  document.getElementById('date').value = state.date;
+  document.getElementById('nbJoueurs').value = 6;
+  renderPlayersGrid();
+  renderPossessions();
+  updateScores();
+  showToast('Formulaire réinitialisé');
+}
+
+// ===== TABS =====
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  event.target.classList.add('active');
+  if (tab === 'scores') updateScores();
+  if (tab === 'historique') loadHistory();
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ===== SW =====
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+init();
+</script>
+</body>
+</html>
