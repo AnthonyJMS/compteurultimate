@@ -356,6 +356,62 @@
     .btn-secondary { background: var(--bg); color: var(--green); border: 2px solid var(--green); }
     .btn:active { transform: scale(.97); }
 
+    /* ---- niveau global ---- */
+    .niveau-global-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .niveau-global-badge .ng-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; opacity: .8; }
+    .niveau-global-badge .ng-val { font-size: 32px; font-weight: 900; margin: 4px 0; }
+    .niveau-global-badge .ng-pts { font-size: 13px; opacity: .75; }
+    .ng-1 { background: #ffebee; color: #c62828; border: 2px solid #ef9a9a; }
+    .ng-2 { background: #fff3e0; color: #e65100; border: 2px solid #ffcc80; }
+    .ng-3 { background: #e8f5e9; color: #2e7d32; border: 2px solid #a5d6a7; }
+    .ng-4 { background: #e3f2fd; color: #1565c0; border: 2px solid #90caf9; }
+    .criteres-recap {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .critere-chip {
+      border-radius: 8px;
+      padding: 8px 4px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1.5px solid var(--border);
+    }
+    .critere-chip .cc-name { display: block; font-size: 10px; color: var(--muted); margin-bottom: 3px; font-weight: 600; }
+    .critere-chip .cc-etape { display: block; font-size: 13px; }
+    .cc-e1 { background: #ffebee; border-color: #ef9a9a; color: #c62828; }
+    .cc-e2 { background: #fff3e0; border-color: #ffcc80; color: #e65100; }
+    .cc-e3 { background: #e8f5e9; border-color: #a5d6a7; color: #2e7d32; }
+    .cc-e4 { background: #e3f2fd; border-color: #90caf9; color: #1565c0; }
+    .ng-scale {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+    }
+    .ng-scale-cell {
+      border-radius: 6px;
+      padding: 6px 2px;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      opacity: .45;
+      transition: .2s;
+    }
+    .ng-scale-cell.ng-active { opacity: 1; transform: scale(1.05); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+    .ng-scale-cell .ngs-label { display: block; font-size: 9px; opacity: .8; margin-bottom: 2px; }
+    .ng-scale-cell .ngs-pts { display: block; font-size: 11px; font-weight: 800; }
+
     /* ---- historique ---- */
     .hist-card {
       background: var(--card);
@@ -547,6 +603,14 @@
         </div>
         <div id="s3hint" class="etape-grid"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Niveau global -->
+  <div class="section" id="niveauGlobalSection">
+    <div class="section-title">Niveau global de l'équipe</div>
+    <div id="niveauGlobalContent">
+      <div style="text-align:center;color:var(--muted);padding:20px;font-size:13px;">Saisissez des possessions pour obtenir le niveau global.</div>
     </div>
   </div>
 </div>
@@ -767,6 +831,7 @@ function updateScores() {
     ['s1val','s2val','s3val'].forEach(id => document.getElementById(id).textContent = '—');
     ['s1frac','s2frac','s3frac'].forEach(id => document.getElementById(id).textContent = '');
     ['s1etape','s2etape','s3etape'].forEach(id => document.getElementById(id).textContent = '');
+    updateNiveauGlobal(null, null, null);
     return;
   }
 
@@ -811,6 +876,55 @@ function updateScores() {
     </div>`
   ).join('');
   setEtape('s3', e3);
+
+  updateNiveauGlobal(e1, e2, e3);
+}
+
+function updateNiveauGlobal(e1, e2, e3) {
+  const container = document.getElementById('niveauGlobalContent');
+  if (!e1 || !e2 || !e3) {
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px;">Saisissez des possessions pour obtenir le niveau global.</div>';
+    return;
+  }
+  const total = e1 + e2 + e3;
+  const ng = total >= 11 ? 4 : total >= 8 ? 3 : total >= 5 ? 2 : 1;
+  const ngLabels = ['', 'Insuffisant', 'Fragile', 'Satisfaisant', 'Très bonne maîtrise'];
+  const ngEmoji  = ['', '❶', '❷', '❸', '❹'];
+  const etapeLabels = ['', 'Insuff.', 'Fragile', 'Satisf.', 'Très bonne'];
+  const critereNames = ['Marque', 'Progresse', 'Ensemble'];
+
+  const scaleData = [
+    { lbl: 'Insuffisant',      pts: '≤ 4 pts',  cls: 'ng-1' },
+    { lbl: 'Fragile',          pts: '5-7 pts',  cls: 'ng-2' },
+    { lbl: 'Satisfaisant',     pts: '8-10 pts', cls: 'ng-3' },
+    { lbl: 'Très bonne maîtr.', pts: '≥ 11 pts', cls: 'ng-4' },
+  ];
+
+  container.innerHTML = `
+    <div class="criteres-recap">
+      ${[e1,e2,e3].map((e,i) => `
+        <div class="critere-chip cc-e${e}">
+          <span class="cc-name">${critereNames[i]}</span>
+          <span class="cc-etape">Niv. ${e}</span>
+          <span style="font-size:10px;">${etapeLabels[e]}</span>
+        </div>`).join('')}
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:10px;">
+      Total des niveaux : <strong style="color:var(--text)">${e1} + ${e2} + ${e3} = ${total} pts</strong>
+    </div>
+    <div class="niveau-global-badge ng-${ng}">
+      <span class="ng-label">Niveau global</span>
+      <span class="ng-val">${ngEmoji[ng]} ${ngLabels[ng]}</span>
+      <span class="ng-pts">${total} / 12 points</span>
+    </div>
+    <div class="ng-scale">
+      ${scaleData.map((s, i) => `
+        <div class="ng-scale-cell ${s.cls}${ng === i+1 ? ' ng-active' : ''}">
+          <span class="ngs-label">${s.lbl}</span>
+          <span class="ngs-pts">${s.pts}</span>
+        </div>`).join('')}
+    </div>
+  `;
 }
 
 function setEtape(prefix, e) {
