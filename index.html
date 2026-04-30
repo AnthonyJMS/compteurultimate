@@ -560,7 +560,7 @@
           <div class="etape-step" id="s1step4"></div>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:8px;">
-          ≤0.2 Insuff. | 0.3-0.4 Fragile | 0.5-0.6 Satisf. | ≥0.7 Très bonne
+          &lt;0.2 Insuff. | 0.2-0.3 Fragile | 0.4-0.5 Satisf. | ≥0.6 Très bonne
         </div>
       </div>
     </div>
@@ -581,7 +581,7 @@
           <div class="etape-step" id="s2step4"></div>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:8px;">
-          ≤10 Insuff. | 11-24 Fragile | 25-39 Satisf. | ≥40 Très bonne
+          ≤5 Insuff. | 6-17 Fragile | 18-29 Satisf. | ≥30 Très bonne
         </div>
       </div>
     </div>
@@ -839,14 +839,14 @@ function updateScores() {
   const s1 = pointsMarques / nbPoss;
   document.getElementById('s1val').textContent = s1.toFixed(2);
   document.getElementById('s1frac').textContent = `(${pointsMarques}/${nbPoss})`;
-  const e1 = s1 <= 0.2 ? 1 : s1 <= 0.4 ? 2 : s1 <= 0.6 ? 3 : 4;
+  const e1 = s1 < 0.2 ? 1 : s1 < 0.4 ? 2 : s1 < 0.6 ? 3 : 4;
   setEtape('s1', e1);
 
   // Score 2: total pts zone / possessions
   const s2raw = totalPtsZone;
   document.getElementById('s2val').textContent = s2raw;
   document.getElementById('s2frac').textContent = `pts zone / ${nbPoss} poss.`;
-  const e2 = s2raw <= 10 ? 1 : s2raw <= 24 ? 2 : s2raw <= 39 ? 3 : 4;
+  const e2 = s2raw <= 5 ? 1 : s2raw <= 17 ? 2 : s2raw <= 29 ? 3 : 4;
   setEtape('s2', e2);
 
   // Score 3: cases cochées / possessions
@@ -856,14 +856,14 @@ function updateScores() {
   const nb = state.nbJoueurs;
   let e3;
   const s3thresholds = nb <= 5
-    ? [{ lbl: 'Étape 1', val: '< 10',    cls: 'eg-1', max: 9  },
-       { lbl: 'Étape 2', val: '10 à 19', cls: 'eg-2', max: 19 },
+    ? [{ lbl: 'Étape 1', val: '< 5',     cls: 'eg-1', max: 5  },
+       { lbl: 'Étape 2', val: '6 à 14',  cls: 'eg-2', max: 14 },
+       { lbl: 'Étape 3', val: '15 à 24', cls: 'eg-3', max: 24 },
+       { lbl: 'Étape 4', val: '≥ 25',    cls: 'eg-4', max: Infinity }]
+    : [{ lbl: 'Étape 1', val: '< 10',    cls: 'eg-1', max: 10 },
+       { lbl: 'Étape 2', val: '11 à 19', cls: 'eg-2', max: 19 },
        { lbl: 'Étape 3', val: '20 à 29', cls: 'eg-3', max: 29 },
-       { lbl: 'Étape 4', val: '≥ 30',    cls: 'eg-4', max: Infinity }]
-    : [{ lbl: 'Étape 1', val: '< 20',    cls: 'eg-1', max: 19 },
-       { lbl: 'Étape 2', val: '20 à 29', cls: 'eg-2', max: 29 },
-       { lbl: 'Étape 3', val: '30 à 39', cls: 'eg-3', max: 39 },
-       { lbl: 'Étape 4', val: '≥ 40',    cls: 'eg-4', max: Infinity }];
+       { lbl: 'Étape 4', val: '≥ 30',    cls: 'eg-4', max: Infinity }];
 
   e3 = s3thresholds.findIndex(t => totalCases <= t.max) + 1;
 
